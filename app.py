@@ -1,24 +1,35 @@
-from flask import Flask, render_template, request
+import streamlit as st
 import pickle
+import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-app = Flask(__name__)
+# Memuat model yang sudah disimpan
+best_model_filename = 'LinearSVCTuned.pkl'
+best_model = pickle.load(open(best_model_filename, 'rb'))
 
-with open("stopwords.txt", "r") as file:
-    stopwords = file.read().splitlines()
+# Memuat TfidfVectorizer yang digunakan saat pelatihan model
+vectorizer_filename = 'tfidfvectoizer.pkl'  # Misalnya, jika Anda juga menyimpan vectorizer
+vectorizer = pickle.load(open(vectorizer_filename, 'rb'))
 
-vectorizer = TfidfVectorizer(stop_words=stopwords, lowercase=True, vocabulary=pickle.load(open("tfidfvectoizer.pkl", "rb")))
-model = pickle.load(open("LinearSVCTuned.pkl", 'rb'))
+# Menambahkan antarmuka pengguna di Streamlit
+st.title("Deteksi Bullying")
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    prediction = None
-    if request.method == 'POST':
-        user_input = request.form['text']
-        transformed_input = vectorizer.fit_transform([user_input])
-        prediction = model.predict(transformed_input)[0]
-    
-    return render_template('index.html', prediction=prediction)
+# Kolom untuk memasukkan komentar
+comment = st.text_area("Masukkan komentar di sini:")
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# Ketika tombol prediksi ditekan
+if st.button("Prediksi"):
+    if comment.strip() == "":
+        st.warning("Harap masukkan komentar terlebih dahulu!")
+    else:
+        # Menggunakan vectorizer untuk mengubah teks input menjadi fitur yang sesuai untuk model
+        comment_vectorized = vectorizer.transform([comment])
+
+        # Menggunakan model untuk memprediksi apakah komentar adalah bullying atau tidak
+        prediction = best_model.predict(comment_vectorized)
+
+        # Menampilkan hasil prediksi
+        if prediction == 1:
+            st.write("Komentar ini **mengandung bullying**.")
+        else:
+            st.write("Komentar ini **tidak mengandung bullying**.")
