@@ -29,7 +29,11 @@ if st.button("Prediksi"):
         prediction = best_model.predict(comment_vectorized)
 
         # Menampilkan hasil prediksi
-        if prediction == 1:
-            st.write("Komentar ini **mengandung bullying**.")
+        #if prediction == 1:
+        #    st.write("Komentar ini **mengandung bullying**.")
+        #else:
+        #    st.write("Komentar ini **tidak mengandung bullying**.")
+        if(trained_model.predict(preprocessed_data)==1):
+            st.write("bulling")
         else:
-            st.write("Komentar ini **tidak mengandung bullying**.")
+            st.write("non bullying")
